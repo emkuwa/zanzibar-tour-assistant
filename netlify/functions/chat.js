@@ -4,7 +4,11 @@ export async function handler(event) {
   }
 
   try {
-    const { message } = JSON.parse(event.body || "{}");
+    // Expecting 'history' (array) instead of just 'message' (string)
+    const { history } = JSON.parse(event.body || "{}");
+
+    // Fallback if history is missing or malformed
+    const safeHistory = Array.isArray(history) ? history : [];
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -14,12 +18,11 @@ export async function handler(event) {
         body: JSON.stringify({
           contents: [
             {
-              role: "system",
+              role: "user",
               parts: [{
                 text: `
+SYSTEM INSTRUCTIONS:
 You are a professional tour sales consultant based in Zanzibar.
-
-RULES:
 - Never use Swahili.
 - Always respond in English unless the guest writes in French, German, Italian, or Arabic.
 - Sound natural and human.
@@ -31,9 +34,10 @@ RULES:
               }]
             },
             {
-              role: "user",
-              parts: [{ text: message }]
-            }
+              role: "model",
+              parts: [{ text: "Understood. I will act as a local Zanzibar expert." }]
+            },
+            ...safeHistory // This injects the previous messages into the prompt
           ]
         })
       }
@@ -41,9 +45,10 @@ RULES:
 
     const data = await res.json();
 
+    // FIXED: Changed fallback from greeting to a neutral prompt
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Welcome to Zanzibar 🌴 How can I help you today?";
+      "I'm here to help! Could you tell me a bit more about your plans for Zanzibar?";
 
     return {
       statusCode: 200,

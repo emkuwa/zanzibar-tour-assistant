@@ -289,13 +289,6 @@
             <p class="subheading">Get real advice on tours, transport, and hidden gems. Helpful island tips with zero booking pressure.</p>
         </header>
 
-        <div id="chat-container">
-            <div class="message ai-message">
-                Hi! 🌴 I'm a local resident here in Zanzibar.
-                Are you already on the island, or planning a visit soon?
-                <br><br>
-                Tell me where you're staying or when you're coming so I can help.
-            </div>
             
             <div id="typing-indicator" class="typing">Typing...</div>
         </div>
@@ -325,7 +318,7 @@
                 <div class="step-icon">2</div>
                 <span>Receive personalized local tips and tour picks</span>
             </div>
-            <div class="step">
+            <div class="step">x
                 <div class="step-icon">3</div>
                 <span>Explore at your own pace — book only if you want to</span>
             </div>
@@ -339,6 +332,19 @@
         const container = document.getElementById('chat-container');
         const typingIndicator = document.getElementById('typing-indicator');
         const submitBtn = document.getElementById('submit-btn');
+        const errorMsg = document.getElementById('error-message');
+    
+        // 1. Initialize memory to store the conversation
+        let chatHistory = [];
+    
+        // Helper to add messages to the UI
+        const appendMessage = (text, isUser) => {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            div.textContent = text;
+            container.insertBefore(div, typingIndicator);
+            container.scrollTop = container.scrollHeight;
+        };
     
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -346,42 +352,38 @@
             if (!message) return;
     
             input.value = '';
-            const userDiv = document.createElement('div');
-            userDiv.className = 'message user-message';
-            userDiv.textContent = message;
-            container.insertBefore(userDiv, typingIndicator);
+            errorMsg.style.display = 'none';
+            
+            // 2. Add user message to UI and history
+            appendMessage(message, true);
+            chatHistory.push({ role: "user", parts: [{ text: message }] });
     
             typingIndicator.style.display = 'block';
             submitBtn.disabled = true;
     
             try {
+                // 3. Send the entire history, not just one message
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({ history: chatHistory }) 
                 });
     
                 if (!response.ok) throw new Error('Server Timeout/Error');
     
                 const data = await response.json();
-
-typingIndicator.style.display = 'none';
-
-if (!data.reply) {
-    throw new Error("No reply from server");
-}
-
-const aiDiv = document.createElement('div');
-aiDiv.className = 'message ai-message';
-aiDiv.textContent = data.reply;
-container.insertBefore(aiDiv, typingIndicator);
-
+                typingIndicator.style.display = 'none';
+    
+                if (data.reply) {
+                    // 4. Add AI reply to UI and history
+                    appendMessage(data.reply, false);
+                    chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
+                }
     
             } catch (err) {
                 typingIndicator.style.display = 'none';
                 console.error("Technical error:", err);
-                // Badala ya alert, onyesha ujumbe mdogo chini ya form
-                document.getElementById('error-message').style.display = 'block';
+                errorMsg.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
             }
