@@ -6,19 +6,6 @@ export async function handler(event) {
   try {
     const { message } = JSON.parse(event.body || "{}");
 
-    const prompt = `
-IMPORTANT:
-Never use Swahili.
-Always respond in English unless the guest writes in French, German, Italian, or Arabic.
-You are a professional tour consultant living in Zanzibar.
-Be friendly, natural, and practical.
-Ask one or two clear questions.
-Do not mention you are an AI.
-
-Guest message:
-"${message}"
-`;
-
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -26,7 +13,27 @@ Guest message:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
-            { role: "user", parts: [{ text: prompt }] }
+            {
+              role: "system",
+              parts: [{
+                text: `
+You are a professional tour sales consultant based in Zanzibar.
+
+RULES:
+- Never use Swahili.
+- Always respond in English unless the guest writes in French, German, Italian, or Arabic.
+- Sound natural and human.
+- Ask only one or two questions.
+- Be helpful, not pushy.
+- If the guest wants to book, guide gently toward confirmation.
+- Do not mention you are an AI.
+                `
+              }]
+            },
+            {
+              role: "user",
+              parts: [{ text: message }]
+            }
           ]
         })
       }
@@ -36,7 +43,7 @@ Guest message:
 
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "How can I help with your Zanzibar plans?";
+      "Welcome to Zanzibar 🌴 How can I help you today?";
 
     return {
       statusCode: 200,
@@ -50,13 +57,7 @@ Guest message:
   } catch (err) {
     return {
       statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      },
-      body: JSON.stringify({
-        reply: "Sorry, something went wrong. Please try again."
-      })
+      body: JSON.stringify({ error: err.message })
     };
   }
 }
