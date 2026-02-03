@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zanzibar Resident Expert — Help & Local Tours</title>
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --primary-light: #f0fdfa;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --white: #ffffff;
+            --error: #ef4444;
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+            position: relative;
+        }
+
+        @media (min-width: 641px) {
+            body { padding: 40px 20px; background-color: #f0f9f9; }
+            .page-wrapper {
+                min-height: auto;
+                height: 850px;
+                border-radius: 32px;
+                overflow: hidden;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(13, 148, 136, 0.1);
+            }
+        }
+
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 40px 24px 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(22px, 6vw, 26px);
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 span {
+            display: block;
+        }
+
+        .subheading {
+            font-size: clamp(15px, 4vw, 16px);
+            opacity: 0.95;
+            font-weight: 400;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        #chat-container {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: var(--white);
+            scrollbar-width: none;
+        }
+
+        #chat-container::-webkit-scrollbar { display: none; }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 16px;
+            animation: slideIn 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background-color: #f1f5f9;
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing {
+            font-size: 14px;
+            color: var(--text-light);
+            display: none;
+            padding-left: 4px;
+            margin-bottom: 8px;
+        }
+
+        .input-area {
+            padding: 16px 20px calc(24px + var(--safe-bottom));
+            border-top: 1px solid #f1f5f9;
+            background: var(--white);
+            flex-shrink: 0;
+        }
+
+        form {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 115px 18px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+            color: var(--text) !important;
+            line-height: 1.2;
+            display: block;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        button {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            bottom: 8px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        button:active { transform: scale(0.96); }
+        button:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+
+        .trust-footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .next-steps {
+            background-color: #f8fafc;
+            padding: 24px 32px;
+            border-top: 1px solid #f1f5f9;
+            flex-shrink: 0;
+        }
+
+        .next-steps h2 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 1px solid rgba(13, 148, 136, 0.2);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 13px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header>
+            <div class="badge">Local Resident Response</div>
+            <h1>
+                <span>Your Zanzibar Expert</span>
+                Already Here or Planning?
+            </h1>
+            <p class="subheading">Get real advice on tours, transport, and hidden gems. Helpful island tips with zero booking pressure.</p>
+        </header>
+
+        <div id="chat-container">
+            <div class="message ai-message">
+                Hi! 🌴 I'm a local resident here in Zanzibar.
+                Are you already on the island, or planning a visit soon?
+                <br><br>
+                Tell me where you're staying or when you're coming so I can help.
+            </div>
+            
+            <div id="typing-indicator" class="typing">Typing...</div>
+        </div>
+
+        <div class="input-area">
+            <form id="chat-form">
+                <input type="text" id="user-input" placeholder="e.g. 'Staying in Paje' or 'Coming next month'..." autocomplete="off" required>
+                <button type="submit" id="submit-btn">Get Advice</button>
+            </form>
+            <div class="trust-footer">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 11C8.76142 11 11 8.76142 11 6C11 3.23858 8.76142 1 6 1C3.23858 1 1 3.23858 1 6C1 8.76142 3.23858 11 6 11Z" stroke="#0D9488" stroke-width="1.5"/>
+                    <path d="M4 6L5.33333 7.33333L8 4.66667" stroke="#0D9488" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                No obligation & no credit card needed
+            </div>
+            <p id="error-message" class="error-msg">Connection issue. Please try again.</p>
+        </div>
+
+        <div class="next-steps">
+            <h2>How it works</h2>
+            <div class="step">
+                <div class="step-icon">1</div>
+                <span>Share your location or travel dates</span>
+            </div>
+            <div class="step">
+                <div class="step-icon">2</div>
+                <span>Receive personalized local tips and tour picks</span>
+            </div>
+            <div class="step">
+                <div class="step-icon">3</div>
+                <span>Explore at your own pace — book only if you want to</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "/.netlify/functions/proxy";
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('user-input');
+        const container = document.getElementById('chat-container');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const submitBtn = document.getElementById('submit-btn');
+    
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (!message) return;
+    
+            input.value = '';
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-message';
+            userDiv.textContent = message;
+            container.insertBefore(userDiv, typingIndicator);
+    
+            typingIndicator.style.display = 'block';
+            submitBtn.disabled = true;
+    
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+    
+                if (!response.ok) throw new Error('Server Timeout/Error');
+    
+                const data = await response.json();
+
+typingIndicator.style.display = 'none';
+
+if (!data.reply) {
+    throw new Error("No reply from server");
+}
+
+const aiDiv = document.createElement('div');
+aiDiv.className = 'message ai-message';
+aiDiv.textContent = data.reply;
+container.insertBefore(aiDiv, typingIndicator);
+
+    
+            } catch (err) {
+                typingIndicator.style.display = 'none';
+                console.error("Technical error:", err);
+                // Badala ya alert, onyesha ujumbe mdogo chini ya form
+                document.getElementById('error-message').style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+        
+</body>
+</html>
