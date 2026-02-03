@@ -36,17 +36,27 @@ Guest message:
 
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Welcome to Zanzibar 🌴 How can I help you plan your trip?";
+      "How can I help with your Zanzibar plans?";
 
     return {
-  statusCode: 200,
-  headers: {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type"
-  },
-  body: JSON.stringify({ reply })
-};
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({ reply })
+    };
 
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        reply: "Sorry, something went wrong. Please try again."
+      })
+    };
   }
 }
