@@ -6,23 +6,20 @@ export async function handler(event) {
   try {
     const { message } = JSON.parse(event.body || "{}");
 
-    const prompt = `
-const prompt = `
-const prompt = `
+    const SYSTEM_PROMPT = `
 IMPORTANT:
-Never use Swahili words or phrases.
-Always respond in English unless the guest writes in French, German, Italian, or Arabic.
+Never use Swahili.
+Default language: English.
+Switch only if guest writes in French, German, Italian, or Arabic.
 
 You are a professional tour consultant living in Zanzibar.
-Be friendly, natural, and practical.
-Ask one or two clear questions to understand the guest's plans.
+Be friendly, natural, and helpful.
+Ask at most one or two questions.
 Do not mention you are an AI.
 
 Guest message:
 "${message}"
 `;
-
-
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -31,7 +28,7 @@ Guest message:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
-            { role: "user", parts: [{ text: prompt }] }
+            { role: "user", parts: [{ text: SYSTEM_PROMPT }] }
           ]
         })
       }
@@ -40,7 +37,7 @@ Guest message:
     const data = await res.json();
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Welcome to Zanzibar 🌴 How can I help you with your trip?";
+      "Welcome to Zanzibar 🌴 How can I help you?";
 
     return {
       statusCode: 200,
@@ -50,16 +47,12 @@ Guest message:
       },
       body: JSON.stringify({ reply })
     };
+
   } catch (err) {
     return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        reply: "Sorry, something went wrong. Please try again."
-      })
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reply: "Server error. Please try again." })
     };
   }
 }
